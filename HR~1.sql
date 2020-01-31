@@ -90,7 +90,7 @@ EXCEPTION
                                         || sqlerrm);
 END add_pegawai;
 
-exec add_pegawai('sukiraan','bawen');
+exec add_pegawai('Makan ','bawena');
 
 CREATE OR REPLACE PROCEDURE del_pegawai (
     p_key IN VARCHAR
@@ -121,10 +121,54 @@ EXCEPTION
                                         || sqlerrm);
 END del_pegawai;
 
-select * from pegawai where nama like '%sukiran%'
-delete pegawai WHERE nama LIKE '%sukiran%';
+CREATE OR REPLACE PROCEDURE soft_del_pegawai (
+    p_key IN VARCHAR
+) IS
+    p_numb NUMBER(2);
+BEGIN
+    SELECT
+        COUNT(*)
+    INTO p_numb
+    FROM
+        pegawai
+    WHERE
+    nama = 'p_key' OR ID = p_key;
 
-exec del_pegawai('sukiran')
+    IF p_numb >= 1 then
+    update pegawai set is_active ='0' 
+        WHERE
+         (nama = 'p_key' OR ID = p_key)
+             and is_active = '1';
+    ELSE
+        dbms_output.put_line('Tidak ada data yang dihapus !');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        raise_application_error(-20001, 'Error'
+                                        || sqlcode
+                                        || '--'
+                                        || sqlerrm);
+END soft_del_pegawai;
+
+
+
+exec soft_del_pegawai('1')
+
+
+
+
+SELECT
+    COUNT(*)
+--    INTO p_numb
+FROM
+    pegawai
+WHERE
+    nama LIKE '%Sarimi%'
+    OR id LIKE '%Sarimi%'
+
+select * from pegawai where nama like '%sukiran%'
+
+exec del_pegawai('Sukamadak')
 
 create or replace TRIGGER insert_pegawai
   BEFORE INSERT ON PEGAWAI
@@ -133,10 +177,33 @@ BEGIN
   SELECT AUTO_ID.nextval
   INTO :new.id
   FROM dual;
-  SELECT 0 
+  SELECT 1 
   INTO :NEW.IS_ACTIVE
   FROM DUAL;
 END;
 
+CREATE OR REPLACE PROCEDURE auto_active (
+    p_id IN VARCHAR
+) IS BEGIN UPDATE pegawai
+SET is_active = 1
+WHERE
+    id = p_id;
+end
+auto_active;
 
+exec auto_active ('2')
+
+ BEGIN
+    FOR loop_emp IN (
+        SELECT
+            *
+        FROM
+            employees
+        WHERE
+            salary > 15000
+    ) LOOP
+    dbms_output.put_line('Number of rows processed: '
+                             || nvl(TO_CHAR(SQL%rowcount), 'Null'));
+    END LOOP loop_emp;
+END;
 
